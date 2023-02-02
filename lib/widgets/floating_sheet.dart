@@ -5,15 +5,13 @@ import 'package:sprung/sprung.dart';
 import 'button.dart' as sui;
 
 /// Shows a floating sheet with padding based on the platform
-class FloatingSheet extends StatelessWidget {
+class _FloatingSheet extends StatelessWidget {
   final Widget child;
   final Color? backgroundColor;
-  final String title;
 
-  const FloatingSheet({
+  const _FloatingSheet({
     Key? key,
     required this.child,
-    required this.title,
     this.backgroundColor,
   }) : super(key: key);
 
@@ -36,10 +34,7 @@ class FloatingSheet extends StatelessWidget {
           clipBehavior: Clip.antiAlias,
           shape:
               RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-          child: _Sheet(
-            title: title,
-            child: child,
-          ),
+          child: child,
         ),
       ),
     );
@@ -50,12 +45,12 @@ class FloatingSheet extends StatelessWidget {
 Future<T> showFloatingSheet<T>({
   required BuildContext context,
   required WidgetBuilder builder,
-  required String title,
   Color? backgroundColor,
   bool useRootNavigator = false,
   Curve? curve,
   bool? isDismissable,
   bool enableDrag = true,
+  double childSpace = 8,
 }) async {
   final result = await showCustomModalBottomSheet(
     isDismissible: isDismissable ?? true,
@@ -64,8 +59,7 @@ Future<T> showFloatingSheet<T>({
     enableDrag: enableDrag,
     animationCurve: curve ?? Sprung(36),
     duration: const Duration(milliseconds: 500),
-    containerWidget: (_, animation, child) => FloatingSheet(
-      title: title,
+    containerWidget: (_, animation, child) => _FloatingSheet(
       backgroundColor: backgroundColor,
       child: child,
     ),
@@ -76,15 +70,16 @@ Future<T> showFloatingSheet<T>({
   return result;
 }
 
-class _Sheet extends StatefulWidget {
-  const _Sheet({
+class FloatingSheet extends StatefulWidget {
+  const FloatingSheet({
     Key? key,
     required this.title,
     required this.child,
     this.headerHeight = 50,
-    this.padding = const EdgeInsets.all(8),
+    this.padding = const EdgeInsets.fromLTRB(16, 8, 16, 16),
     this.icon,
     this.useRoot = false,
+    this.childSpace = 8,
   }) : super(key: key);
 
   final String title;
@@ -93,12 +88,13 @@ class _Sheet extends StatefulWidget {
   final EdgeInsets padding;
   final IconData? icon;
   final bool useRoot;
+  final double childSpace;
 
   @override
-  _SheetState createState() => _SheetState();
+  State<FloatingSheet> createState() => _FloatingSheetState();
 }
 
-class _SheetState extends State<_Sheet> {
+class _FloatingSheetState extends State<FloatingSheet> {
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -134,10 +130,8 @@ class _SheetState extends State<_Sheet> {
                     ),
                   ],
                 ),
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: widget.child,
-                ),
+                SizedBox(height: widget.childSpace),
+                widget.child,
               ],
             ),
           ),

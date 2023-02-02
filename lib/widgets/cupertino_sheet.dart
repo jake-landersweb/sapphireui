@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
+import 'package:sapphireui/functions/root.dart';
 import 'package:sprung/sprung.dart';
 import 'package:provider/provider.dart';
 
-class _SheetProvider extends ChangeNotifier {
+class CupertinoSheetProvider extends ChangeNotifier {
   bool _isScaled = false;
 
   bool get isScaled => _isScaled;
@@ -18,6 +19,8 @@ class _SheetProvider extends ChangeNotifier {
 /// the [showCupertinoSheet] method. This wraps the entire future
 /// widget tree inside a provider that allows for
 /// the scale method to be triggered throughout the widget tree.
+/// This widget requires that a [CupertinSheetProvider] exists
+/// above the [MaterialApp] widget.
 class CupertinoSheetBase extends StatelessWidget {
   CupertinoSheetBase({
     super.key,
@@ -29,18 +32,8 @@ class CupertinoSheetBase extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // create the provider when the root widget is wrapped
-    // inside the base widget
-    return ChangeNotifierProvider(
-      create: ((context) => _SheetProvider()),
-      builder: (context, child) {
-        return _body(context);
-      },
-    );
-  }
-
-  Widget _body(BuildContext context) {
-    _SheetProvider smodel = Provider.of<_SheetProvider>(context);
+    CupertinoSheetProvider smodel =
+        Provider.of<CupertinoSheetProvider>(context);
     return Container(
       key: _key,
       height: double.infinity,
@@ -79,11 +72,18 @@ class CupertinoSheet extends StatefulWidget {
 }
 
 class _CupertinoSheetState extends State<CupertinoSheet> {
+  late CupertinoSheetProvider prov;
+  @override
+  void initState() {
+    prov = widget.oldContext.read<CupertinoSheetProvider>();
+    super.initState();
+  }
+
   @override
   void dispose() {
     if (widget.rescaleScreen ?? true) {
       WidgetsBinding.instance.addPostFrameCallback(
-        (_) => widget.oldContext.read<_SheetProvider>().setIsScaled(false),
+        (_) => prov.setIsScaled(false),
       );
     }
     super.dispose();
@@ -103,7 +103,8 @@ class _CupertinoSheetState extends State<CupertinoSheet> {
                     duration: const Duration(milliseconds: 150),
                     curve: Sprung(36),
                     child: Material(
-                      color: widget.backgroundColor,
+                      color: widget.backgroundColor ??
+                          CustomColors.backgroundColor(context),
                       clipBehavior: Clip.antiAlias,
                       shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(10)),
@@ -128,9 +129,10 @@ Future<T> showCupertinoSheet<T>({
   bool? isDismissable,
   bool enableDrag = true,
   bool? reScaleScreen,
+  bool wrap = true,
 }) async {
   WidgetsBinding.instance.addPostFrameCallback(
-    (_) => context.read<_SheetProvider>().setIsScaled(true),
+    (_) => context.read<CupertinoSheetProvider>().setIsScaled(true),
   );
   final result = await showCustomModalBottomSheet(
     isDismissible: isDismissable ?? true,
@@ -139,12 +141,14 @@ Future<T> showCupertinoSheet<T>({
     enableDrag: enableDrag,
     animationCurve: curve ?? Sprung(36),
     duration: const Duration(milliseconds: 500),
-    containerWidget: (_, animation, child) => CupertinoSheet(
-      backgroundColor: backgroundColor,
-      oldContext: context,
-      rescaleScreen: reScaleScreen,
-      child: child,
-    ),
+    containerWidget: (_, animation, child) => wrap
+        ? CupertinoSheet(
+            backgroundColor: backgroundColor,
+            oldContext: context,
+            rescaleScreen: reScaleScreen,
+            child: child,
+          )
+        : child,
     expand: false,
     useRootNavigator: useRootNavigator,
   );
