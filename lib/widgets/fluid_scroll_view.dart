@@ -1,54 +1,33 @@
 import 'package:flutter/material.dart';
 import 'package:sprung/sprung.dart';
-import 'package:visibility_detector/visibility_detector.dart';
-import 'scroll_vel_listener.dart' as sui;
+import 'dart:math' as math;
 
-/// A [ScrollView] that animates the space between the widgets
-/// as you scroll. Trying to replicate the effect seen when
-/// scrolling on the iMessage app in iOS.
-/// [velocityFactor] controls how much the spacing gets dampened.
-/// Therefore, a higher [velocityFactor] will result in a more
-/// subtle effect.
 class FluidScrollView extends StatefulWidget {
   const FluidScrollView({
     super.key,
     required this.children,
     this.spacing = 16,
-    this.velocityFactor,
+    this.factor,
     this.controller,
     this.crossAxisAlignment = CrossAxisAlignment.start,
   });
-
   final List<Widget> children;
   final double spacing;
-  final int? velocityFactor;
+  final double? factor;
   final ScrollController? controller;
   final CrossAxisAlignment crossAxisAlignment;
 
   @override
-  State<FluidScrollView> createState() => FluidScrollViewState();
+  State<FluidScrollView> createState() => _FluidScrollViewState();
 }
 
-class FluidScrollViewState extends State<FluidScrollView> {
-  // storing the relative velocity
-  late double _scrollVelocity;
-  // list of widget keys that are visible
-  late final List<String> _visibility;
-  // velocity factor to dampen the scroll velocity with
-  late int _velFactor;
-  // ability to pass in custom controller
+class _FluidScrollViewState extends State<FluidScrollView> {
+  double _scrollVelocity = 0;
+  double _fingerPosition = 0;
   late ScrollController _controller;
 
   @override
   void initState() {
-    _scrollVelocity = 0;
-    _visibility = [];
-    // set the correct velocity factor
-    if (widget.velocityFactor == null) {
-      _velFactor = 300;
-    } else {
-      _velFactor = widget.velocityFactor!;
-    }
     if (widget.controller == null) {
       _controller = ScrollController();
     } else {
@@ -58,39 +37,39 @@ class FluidScrollViewState extends State<FluidScrollView> {
   }
 
   @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
-    return sui.ScrollVelocityListener(
-      onVelocity: (vel) {
+    return Listener(
+      onPointerMove: (event) {
+        // get position of finger on screen when moving
         setState(() {
-          _scrollVelocity = vel / _velFactor;
+          _fingerPosition = event.position.dy;
         });
       },
-      child: SingleChildScrollView(
-        physics: const AlwaysScrollableScrollPhysics(),
-        controller: _controller,
-        child: ConstrainedBox(
-          constraints: BoxConstraints(
-            minWidth: double.infinity,
-            minHeight: MediaQuery.of(context).size.height,
-          ),
-          child: Column(
-            crossAxisAlignment: widget.crossAxisAlignment,
-            children: [
-              for (int i = 0; i < widget.children.length; i++)
-                _ScrollCell(
-                  index: i,
-                  scrollVelocity: _scrollVelocity,
-                  visibility: _visibility,
-                  spacing: widget.spacing,
-                  child: widget.children[i],
-                ),
-            ],
+      child: _ScrollVelocityListener(
+        onVelocity: (vel) {
+          setState(() {
+            _scrollVelocity = vel;
+          });
+        },
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          controller: _controller,
+          child: SizedBox(
+            width: double.infinity,
+            child: Column(
+              crossAxisAlignment: widget.crossAxisAlignment,
+              children: [
+                for (int i = 0; i < widget.children.length; i++)
+                  _ScrollCell(
+                    index: i,
+                    spacing: widget.spacing,
+                    fingerLocation: _fingerPosition,
+                    scrollVelocity: _scrollVelocity,
+                    factor: widget.factor,
+                    child: widget.children[i],
+                  ),
+              ],
+            ),
           ),
         ),
       ),
@@ -98,96 +77,123 @@ class FluidScrollViewState extends State<FluidScrollView> {
   }
 }
 
-// cell for controlling the offset of the widget
 class _ScrollCell extends StatefulWidget {
   const _ScrollCell({
     super.key,
     required this.index,
-    required this.scrollVelocity,
-    required this.visibility,
     required this.child,
     required this.spacing,
+    required this.fingerLocation,
+    required this.scrollVelocity,
+    this.factor,
   });
   final int index;
-  final double scrollVelocity;
-  final List<String> visibility;
   final Widget child;
   final double spacing;
+  final double fingerLocation;
+  final double scrollVelocity;
+  final double? factor;
 
   @override
-  State<_ScrollCell> createState() => _ScrollCellState();
+  State<_ScrollCell> createState() => __ScrollCellState();
 }
 
-class _ScrollCellState extends State<_ScrollCell> {
-  late final ValueKey _key;
+class __ScrollCellState extends State<_ScrollCell> {
+  final GlobalKey _key = GlobalKey();
+  double? _size;
 
   @override
   void initState() {
-    _key = ValueKey(widget.index);
-    VisibilityDetectorController.instance.updateInterval = Duration.zero;
     super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
-    return VisibilityDetector(
-      key: _key,
-      onVisibilityChanged: ((info) {
-        if (info.size.height >= 0) {
-          // get the visibility fraction
-          var visiblePercentage = info.visibleFraction;
-          if (visiblePercentage == 0) {
-            // remove the widget key from the visible list
-            WidgetsBinding.instance.addPostFrameCallback(
-              (_) {
-                if (mounted) {
-                  setState(() {
-                    widget.visibility.removeWhere(
-                        (element) => element == info.key.toString());
-                  });
-                }
-              },
-            );
-          } else {
-            // add the widget key to the visible list
-            if (!widget.visibility.contains(info.key.toString())) {
-              WidgetsBinding.instance.addPostFrameCallback(
-                (_) {
-                  if (mounted) {
-                    setState(() {
-                      widget.visibility.add(info.key.toString());
-                    });
-                  }
-                },
-              );
-            }
-          }
-        }
-        // sort the list based on the index of the widget
-        widget.visibility.sort((a, b) {
-          var na = a.replaceAll(RegExp(r'[^0-9]'), '');
-          var nb = b.replaceAll(RegExp(r'[^0-9]'), '');
-          var ia = int.parse(na);
-          var ib = int.parse(nb);
-          return ia.compareTo(ib);
-        });
-      }),
-      child: Padding(
-        padding: EdgeInsets.only(bottom: widget.spacing),
-        child: AnimatedSlide(
-          // offset the widget y value by the velocity
-          // times the index the widget key is in the visibility
-          // list. So, widgets near the bottom of the viewport will
-          // have a larger offset than the top.
-          offset: Offset(
-              0,
-              widget.scrollVelocity *
-                  widget.visibility.indexOf(_key.toString())),
-          duration: const Duration(milliseconds: 400),
-          curve: Sprung(50),
-          child: widget.child,
-        ),
+    return Padding(
+      padding: EdgeInsets.only(bottom: widget.spacing),
+      child: AnimatedSlide(
+        key: _key,
+        offset: Offset(0, _getYOffset()),
+        duration: const Duration(milliseconds: 400),
+        curve: Sprung(50),
+        child: widget.child,
       ),
+    );
+  }
+
+  double _getPosition() {
+    if (_key.currentContext == null) {
+      return 0;
+    }
+    RenderBox box = _key.currentContext!.findRenderObject() as RenderBox;
+    if (!box.hasSize) {
+      return 0;
+    }
+    Offset position = box.localToGlobal(Offset.zero);
+    double y = position.dy;
+    _size = box.size.height;
+    return y;
+  }
+
+  double _getYOffset() {
+    double globalPosition = _getPosition();
+    if (globalPosition == 0) {
+      return 0;
+    }
+    if (widget.fingerLocation == 0) {
+      return 0;
+    }
+    double val = ((widget.fingerLocation - globalPosition) / 1000) *
+        (widget.scrollVelocity / (widget.factor ?? ((_size ?? 10) / 5)));
+    double out = math.min(1, math.max(-1, val));
+    if (globalPosition > widget.fingerLocation) {
+      out = -out;
+    }
+    return out;
+  }
+}
+
+// for calculating the velocity of a scrollable widget
+class _ScrollVelocityListener extends StatefulWidget {
+  final Function(double) onVelocity;
+  final Widget child;
+
+  const _ScrollVelocityListener({
+    super.key,
+    required this.onVelocity,
+    required this.child,
+  });
+
+  @override
+  State<StatefulWidget> createState() => _ScrollVelocityListenerState();
+}
+
+class _ScrollVelocityListenerState extends State<_ScrollVelocityListener> {
+  int lastMilli = DateTime.now().millisecondsSinceEpoch;
+
+  @override
+  Widget build(BuildContext context) {
+    return NotificationListener<ScrollNotification>(
+      onNotification: (notification) {
+        final now = DateTime.now();
+        final timeDiff = now.millisecondsSinceEpoch - lastMilli;
+        if (notification is ScrollUpdateNotification) {
+          final pixelsPerMilli = notification.scrollDelta ?? 0 / timeDiff;
+          widget.onVelocity(
+            pixelsPerMilli,
+          );
+          lastMilli = DateTime.now().millisecondsSinceEpoch;
+        }
+
+        if (notification is ScrollEndNotification) {
+          widget.onVelocity(0);
+          lastMilli = DateTime.now().millisecondsSinceEpoch;
+        } else {
+          return true;
+        }
+        return true;
+      },
+      child: widget.child,
     );
   }
 }
