@@ -10,12 +10,14 @@ class FluidScrollView extends StatefulWidget {
     this.factor,
     this.controller,
     this.crossAxisAlignment = CrossAxisAlignment.start,
+    this.forceMaxSize = true,
   });
   final List<Widget> children;
   final double spacing;
   final double? factor;
   final ScrollController? controller;
   final CrossAxisAlignment crossAxisAlignment;
+  final bool forceMaxSize;
 
   @override
   State<FluidScrollView> createState() => _FluidScrollViewState();
@@ -52,10 +54,15 @@ class _FluidScrollViewState extends State<FluidScrollView> {
           });
         },
         child: SingleChildScrollView(
-          physics: const AlwaysScrollableScrollPhysics(),
+          physics: const AlwaysScrollableScrollPhysics()
+              .applyTo(const BouncingScrollPhysics()),
           controller: _controller,
-          child: SizedBox(
-            width: double.infinity,
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              minWidth: double.infinity,
+              minHeight:
+                  widget.forceMaxSize ? MediaQuery.of(context).size.height : 0,
+            ),
             child: Column(
               crossAxisAlignment: widget.crossAxisAlignment,
               children: [
@@ -126,13 +133,15 @@ class __ScrollCellState extends State<_ScrollCell> {
       return 0;
     }
     RenderBox box = _key.currentContext!.findRenderObject() as RenderBox;
-    if (!box.hasSize) {
+    try {
+      Offset position = box.localToGlobal(Offset.zero);
+      double y = position.dy;
+      _size = box.size.height;
+      return y;
+    } catch (_) {
+      // ignore for layout problems
       return 0;
     }
-    Offset position = box.localToGlobal(Offset.zero);
-    double y = position.dy;
-    _size = box.size.height;
-    return y;
   }
 
   double _getYOffset() {

@@ -35,6 +35,7 @@ class AppBar extends StatefulWidget {
     this.crossAxisAlignment = CrossAxisAlignment.start,
     this.animateOnAdd = false,
     this.largeTitlePadding = EdgeInsets.zero,
+    this.forceMaxSize = true,
   }) : super(key: key);
 
   AppBar.sheet({
@@ -59,6 +60,7 @@ class AppBar extends StatefulWidget {
     this.crossAxisAlignment = CrossAxisAlignment.start,
     this.animateOnAdd = false,
     this.largeTitlePadding = EdgeInsets.zero,
+    this.forceMaxSize = true,
   }) {
     // set sheet specific attributes
     isLarge = false;
@@ -95,6 +97,7 @@ class AppBar extends StatefulWidget {
   final CrossAxisAlignment crossAxisAlignment;
   final bool animateOnAdd;
   final EdgeInsets largeTitlePadding;
+  final bool forceMaxSize;
 
   @override
   _AppBarState createState() => _AppBarState();
@@ -299,6 +302,7 @@ class _AppBarState extends State<AppBar> {
                     controller: _scrollController,
                     spacing: widget.itemSpacing,
                     crossAxisAlignment: widget.crossAxisAlignment,
+                    forceMaxSize: widget.forceMaxSize,
                     children: _children(context),
                   )
                 : ListView(
@@ -311,7 +315,6 @@ class _AppBarState extends State<AppBar> {
                     children: _children(context),
                   )
             : Column(
-                mainAxisSize: MainAxisSize.min,
                 children: widget.children,
               ),
       ),
