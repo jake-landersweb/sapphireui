@@ -156,14 +156,17 @@ class _ListViewState<T> extends State<ListView<T>> {
                                 width: double.infinity,
                                 height: 0.5,
                                 color: widget.backgroundColor ??
-                                    CustomColors.cellColor(context),
+                                    Theme.of(context)
+                                        .colorScheme
+                                        .secondaryContainer,
                               ),
                               Divider(
                                 indent:
                                     widget.allowsSelect ? (16 + 20 + 16) : 16,
                                 height: 0.5,
-                                color: CustomColors.textColor(context)
-                                    .withOpacity(0.1),
+                                color: Theme.of(context)
+                                    .colorScheme
+                                    .surfaceVariant,
                               ),
                             ],
                           ),
@@ -181,8 +184,8 @@ class _ListViewState<T> extends State<ListView<T>> {
       padding: widget.childPadding,
       isAnimated: widget.isAnimated,
       allowsDelete: widget.allowsDelete,
-      backgroundColor:
-          widget.backgroundColor ?? CustomColors.cellColor(context),
+      backgroundColor: widget.backgroundColor ??
+          Theme.of(context).colorScheme.secondaryContainer,
       showStyling: widget.showStyling,
       leadingPadding: widget.leadingPadding,
       trailingPadding: widget.trailingPadding,

@@ -6,6 +6,8 @@ class SegmentedPickerStyle {
   final double height;
   final Color? backgroundColor;
   final Color? textColor;
+  final Color? selectedTextColor;
+  final Color? pickerColor;
   final ShapeBorder? shape;
   final FontWeight? selectedWeight;
 
@@ -13,6 +15,8 @@ class SegmentedPickerStyle {
     this.height = 33,
     this.backgroundColor,
     this.textColor,
+    this.selectedTextColor,
+    this.pickerColor,
     this.shape,
     this.selectedWeight,
   });
@@ -46,8 +50,8 @@ class _SegmentedPickerState extends State<SegmentedPicker> {
     return Material(
       shape: widget.style.shape ??
           ContinuousRectangleBorder(borderRadius: BorderRadius.circular(15)),
-      color:
-          widget.style.backgroundColor ?? _textColor(context).withOpacity(0.1),
+      color: widget.style.backgroundColor ??
+          Theme.of(context).colorScheme.surfaceVariant,
       child: SizedBox(
         height: widget.style.height + 2,
         child: Padding(
@@ -62,8 +66,10 @@ class _SegmentedPickerState extends State<SegmentedPicker> {
                 child: Material(
                   shape: widget.style.shape ??
                       ContinuousRectangleBorder(
-                          borderRadius: BorderRadius.circular(15)),
-                  color: Theme.of(context).primaryColor.withOpacity(0.3),
+                        borderRadius: BorderRadius.circular(15),
+                      ),
+                  color: widget.style.pickerColor ??
+                      Theme.of(context).primaryColor.withOpacity(0.3),
                   child: FractionallySizedBox(
                     widthFactor: 1 / widget.titles.length,
                     child: SizedBox(height: widget.style.height),
@@ -101,13 +107,13 @@ class _SegmentedPickerState extends State<SegmentedPicker> {
   Color _titleColor(int i, BuildContext context) {
     if (widget.selections != null) {
       if (widget.selections![i] == widget.selection) {
-        return Theme.of(context).primaryColor;
+        return widget.style.selectedTextColor ?? Theme.of(context).primaryColor;
       } else {
         return widget.style.textColor ?? _textColor(context);
       }
     } else {
       if (widget.titles[i] == widget.selection) {
-        return Theme.of(context).primaryColor;
+        return widget.style.selectedTextColor ?? Theme.of(context).primaryColor;
       } else {
         return widget.style.textColor ?? _textColor(context);
       }

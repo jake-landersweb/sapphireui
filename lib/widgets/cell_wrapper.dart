@@ -9,18 +9,22 @@ class CellWrapper extends StatelessWidget {
     this.backgroundColor,
     this.borderRadius = 10,
     this.horizontalPadding = 16,
+    this.border,
   });
   final Widget child;
   final double minHeight;
   final Color? backgroundColor;
   final double borderRadius;
   final double horizontalPadding;
+  final Border? border;
 
   @override
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: backgroundColor ?? CustomColors.cellColor(context),
+        color:
+            backgroundColor ?? Theme.of(context).colorScheme.secondaryContainer,
+        border: border,
         borderRadius: BorderRadius.circular(borderRadius),
       ),
       child: ConstrainedBox(

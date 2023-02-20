@@ -104,7 +104,7 @@ class _TimePickerState extends State<TimePicker> {
                 Expanded(
                   child: Container(
                     decoration: BoxDecoration(
-                      color: Theme.of(context).primaryColor.withOpacity(0.1),
+                      color: Theme.of(context).colorScheme.tertiaryContainer,
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: Row(
@@ -126,13 +126,7 @@ class _TimePickerState extends State<TimePicker> {
                             ],
                             style: TextStyle(
                               fontSize: _fontSize,
-                              color:
-                                  MediaQuery.of(context).platformBrightness ==
-                                          Brightness.light
-                                      ? Theme.of(context).primaryColor
-                                      : Theme.of(context)
-                                          .primaryColor
-                                          .lighten(0.15),
+                              color: Theme.of(context).colorScheme.tertiary,
                               fontWeight: _fontWeight,
                             ),
                             onChanged: (val) {
@@ -157,7 +151,7 @@ class _TimePickerState extends State<TimePicker> {
                     ":",
                     style: TextStyle(
                       fontSize: _fontSize,
-                      color: CustomColors.textColor(context).withOpacity(0.3),
+                      color: Theme.of(context).colorScheme.onPrimaryContainer,
                       fontWeight: _fontWeight,
                     ),
                   ),
@@ -166,7 +160,7 @@ class _TimePickerState extends State<TimePicker> {
                 Expanded(
                   child: Container(
                     decoration: BoxDecoration(
-                      color: CustomColors.textColor(context).withOpacity(0.1),
+                      color: Theme.of(context).colorScheme.tertiaryContainer,
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: Row(
@@ -188,12 +182,7 @@ class _TimePickerState extends State<TimePicker> {
                             ],
                             style: TextStyle(
                               fontSize: _fontSize,
-                              color:
-                                  MediaQuery.of(context).platformBrightness ==
-                                          Brightness.light
-                                      ? CustomColors.textColor(context)
-                                          .withOpacity(0.5)
-                                      : CustomColors.textColor(context),
+                              color: Theme.of(context).colorScheme.tertiary,
                               fontWeight: _fontWeight,
                             ),
                             onChanged: (val) {
@@ -279,37 +268,33 @@ class _TimePickerState extends State<TimePicker> {
 
   Color getAmColor() {
     if (_isAm) {
-      return MediaQuery.of(context).platformBrightness == Brightness.light
-          ? Theme.of(context).primaryColor
-          : Theme.of(context).primaryColor.lighten(0.15);
+      return Theme.of(context).colorScheme.tertiary;
     } else {
-      return CustomColors.textColor(context).withOpacity(0.5);
+      return Theme.of(context).colorScheme.tertiaryContainer;
     }
   }
 
   Color getAmAccent() {
     if (_isAm) {
-      return Theme.of(context).primaryColor.withOpacity(0.3);
+      return Theme.of(context).colorScheme.tertiaryContainer;
     } else {
-      return CustomColors.textColor(context).withOpacity(0.1);
+      return Theme.of(context).colorScheme.onTertiaryContainer;
     }
   }
 
   Color getPmColor() {
     if (!_isAm) {
-      return MediaQuery.of(context).platformBrightness == Brightness.light
-          ? Theme.of(context).primaryColor
-          : Theme.of(context).primaryColor.lighten(0.15);
+      return Theme.of(context).colorScheme.tertiary;
     } else {
-      return CustomColors.textColor(context).withOpacity(0.5);
+      return Theme.of(context).colorScheme.tertiaryContainer;
     }
   }
 
   Color getPmAccent() {
     if (!_isAm) {
-      return Theme.of(context).primaryColor.withOpacity(0.3);
+      return Theme.of(context).colorScheme.tertiaryContainer;
     } else {
-      return CustomColors.textColor(context).withOpacity(0.1);
+      return Theme.of(context).colorScheme.onTertiaryContainer;
     }
   }
 

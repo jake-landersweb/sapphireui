@@ -22,11 +22,12 @@ class _FloatingSheet extends StatelessWidget {
       duration: const Duration(milliseconds: 150),
       curve: Sprung(36),
       padding: EdgeInsets.only(
-          bottom: (MediaQuery.of(context).viewInsets.bottom -
-                      MediaQuery.of(context).viewPadding.bottom) <
-                  0
-              ? 0
-              : (MediaQuery.of(context).viewInsets.bottom - bottomPadding)),
+        bottom: (MediaQuery.of(context).viewInsets.bottom -
+                    MediaQuery.of(context).viewPadding.bottom) <
+                0
+            ? 0
+            : (MediaQuery.of(context).viewInsets.bottom - bottomPadding),
+      ),
       child: Padding(
         padding: EdgeInsets.fromLTRB(10, 0, 10, bottomPadding + 10),
         child: Material(
@@ -101,7 +102,7 @@ class _FloatingSheetState extends State<FloatingSheet> {
       mainAxisSize: MainAxisSize.min,
       children: [
         Container(
-          color: CustomColors.sheetBackground(context),
+          color: Theme.of(context).colorScheme.secondaryContainer,
           child: Padding(
             padding: widget.padding,
             child: Column(
@@ -113,7 +114,7 @@ class _FloatingSheetState extends State<FloatingSheet> {
                       child: Text(
                         widget.title,
                         style: TextStyle(
-                          color: CustomColors.textColor(context),
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
                           fontSize: 26,
                           fontWeight: FontWeight.w600,
                         ),
@@ -125,7 +126,7 @@ class _FloatingSheetState extends State<FloatingSheet> {
                               .pop(),
                       child: Icon(
                         widget.icon ?? Icons.close,
-                        color: Theme.of(context).primaryColor,
+                        color: Theme.of(context).colorScheme.tertiary,
                       ),
                     ),
                   ],

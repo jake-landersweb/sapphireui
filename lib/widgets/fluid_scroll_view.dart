@@ -26,7 +26,10 @@ class FluidScrollView extends StatefulWidget {
 class _FluidScrollViewState extends State<FluidScrollView> {
   double _scrollVelocity = 0;
   double _fingerPosition = 0;
+  double _scrollPosition = 0;
+  bool _isTouchingScreen = false;
   late ScrollController _controller;
+  int _lastMilli = DateTime.now().millisecondsSinceEpoch;
 
   @override
   void initState() {
@@ -35,6 +38,9 @@ class _FluidScrollViewState extends State<FluidScrollView> {
     } else {
       _controller = widget.controller!;
     }
+    _controller.addListener(() {
+      _scrollPosition = _controller.offset;
+    });
     super.initState();
   }
 
@@ -44,14 +50,45 @@ class _FluidScrollViewState extends State<FluidScrollView> {
       onPointerMove: (event) {
         // get position of finger on screen when moving
         setState(() {
+          _isTouchingScreen = true;
           _fingerPosition = event.position.dy;
         });
       },
-      child: _ScrollVelocityListener(
-        onVelocity: (vel) {
-          setState(() {
-            _scrollVelocity = vel;
-          });
+      onPointerUp: (event) {
+        setState(() {
+          _isTouchingScreen = false;
+        });
+      },
+      child: NotificationListener<ScrollNotification>(
+        onNotification: (notification) {
+          final now = DateTime.now();
+          final timeDiff = now.millisecondsSinceEpoch - _lastMilli;
+          if (notification is ScrollUpdateNotification) {
+            if (notification.metrics.axis == Axis.horizontal) {
+              return true;
+            }
+            if (!_isTouchingScreen) {
+              setState(() {
+                _fingerPosition += notification.scrollDelta ?? 0;
+              });
+            }
+            final pixelsPerMilli = notification.scrollDelta ?? 0 / timeDiff;
+            setState(() {
+              _scrollVelocity = pixelsPerMilli;
+            });
+            _lastMilli = DateTime.now().millisecondsSinceEpoch;
+          }
+
+          if (notification is ScrollEndNotification) {
+            setState(() {
+              _scrollVelocity = 0;
+            });
+            _lastMilli = DateTime.now().millisecondsSinceEpoch;
+          } else {
+            return true;
+          }
+
+          return true;
         },
         child: SingleChildScrollView(
           physics: const AlwaysScrollableScrollPhysics()

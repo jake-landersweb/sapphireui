@@ -127,13 +127,10 @@ class _AppBarState extends State<AppBar> {
   // for controlling scroll
   late ScrollController _scrollController;
 
-  late String _title;
-
   @override
   void initState() {
     // some assertions
     super.initState();
-    _title = widget.title;
     _barHeight = widget.barHeight;
     // set up scroll controller
     if (widget.scrollController == null) {
@@ -238,7 +235,8 @@ class _AppBarState extends State<AppBar> {
         }
       },
       child: Container(
-        color: widget.backgroundColor,
+        color:
+            widget.backgroundColor ?? Theme.of(context).colorScheme.background,
         child: SafeArea(
           top: false,
           bottom: false,
@@ -265,10 +263,10 @@ class _AppBarState extends State<AppBar> {
                     alignment: Alignment.topCenter,
                     child: _scrollAmount != 0
                         ? CircularProgressIndicator(
-                            color: Theme.of(context).primaryColor)
+                            color: Theme.of(context).colorScheme.primary)
                         : CircularProgressIndicator(
                             value: _loadAmount,
-                            color: Theme.of(context).primaryColor,
+                            color: Theme.of(context).colorScheme.primary,
                           ),
                   ),
                 ),
@@ -323,28 +321,35 @@ class _AppBarState extends State<AppBar> {
 
   List<Widget> _children(BuildContext context) {
     return [
-      SizedBox(
-        height:
-            (widget.hasSafeArea ? MediaQuery.of(context).viewPadding.top : 0) +
+      Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            height: (widget.hasSafeArea
+                    ? MediaQuery.of(context).viewPadding.top
+                    : 0) +
                 _barHeight,
-      ),
-      if (widget.isLarge)
-        // scalable large title
-        Padding(
-          padding: widget.largeTitlePadding,
-          child: Transform.scale(
-            alignment: Alignment.centerLeft,
-            scale: _titleScale > 1 ? _titleScale : 1,
-            child: Text(
-              _title,
-              style: TextStyle(
-                fontSize: 32,
-                fontWeight: FontWeight.w800,
-                color: widget.titleColor,
+          ),
+          if (widget.isLarge)
+            // scalable large title
+            Padding(
+              padding: widget.largeTitlePadding,
+              child: Transform.scale(
+                alignment: Alignment.centerLeft,
+                scale: _titleScale > 1 ? _titleScale : 1,
+                child: Text(
+                  widget.title,
+                  style: TextStyle(
+                    fontSize: 32,
+                    fontWeight: FontWeight.w800,
+                    color: widget.titleColor ??
+                        Theme.of(context).colorScheme.onBackground,
+                  ),
+                ),
               ),
             ),
-          ),
-        ),
+        ],
+      ),
       for (var i in widget.children)
         widget.animateOnAdd ? _AppBarAnimatedCell(child: i) : i,
       SizedBox(height: widget.bottomSpacing),
@@ -357,8 +362,8 @@ class _AppBarState extends State<AppBar> {
         sui.BlurredContainer(
           width: double.infinity,
           borderRadius: BorderRadius.circular(0),
-          backgroundColor:
-              widget.backgroundColor ?? CustomColors.backgroundColor(context),
+          backgroundColor: widget.backgroundColor ??
+              Theme.of(context).colorScheme.background,
           opacity: _showElevation ? 0.7 : 0,
           blur: _showElevation ? 10 : 0,
           child: Column(
@@ -397,13 +402,16 @@ class _AppBarState extends State<AppBar> {
                                     opacity: _showSmallTitle ? 1 : 0,
                                     duration: const Duration(milliseconds: 150),
                                     child: Text(
-                                      _title.length > 25
-                                          ? "${_title.substring(0, 25)}..."
-                                          : _title,
+                                      widget.title.length > 25
+                                          ? "${widget.title.substring(0, 25)}..."
+                                          : widget.title,
                                       style: TextStyle(
                                         fontSize: 20,
                                         fontWeight: FontWeight.w600,
-                                        color: widget.titleColor,
+                                        color: widget.titleColor ??
+                                            Theme.of(context)
+                                                .colorScheme
+                                                .onBackground,
                                       ),
                                     ),
                                   ),
@@ -420,7 +428,8 @@ class _AppBarState extends State<AppBar> {
         AnimatedOpacity(
           opacity: _showElevation ? 1 : 0,
           duration: const Duration(milliseconds: 300),
-          child: const Divider(
+          child: Divider(
+            color: Theme.of(context).colorScheme.outline.withOpacity(0.1),
             height: 0.5,
             indent: 0,
             endIndent: 0,

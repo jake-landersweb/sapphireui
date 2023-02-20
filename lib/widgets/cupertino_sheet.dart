@@ -104,7 +104,7 @@ class _CupertinoSheetState extends State<CupertinoSheet> {
                     curve: Sprung(36),
                     child: Material(
                       color: widget.backgroundColor ??
-                          CustomColors.backgroundColor(context),
+                          Theme.of(context).colorScheme.surfaceVariant,
                       clipBehavior: Clip.antiAlias,
                       shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(10)),

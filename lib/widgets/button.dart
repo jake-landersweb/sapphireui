@@ -13,12 +13,14 @@ class Button extends StatefulWidget {
     required this.child,
     this.duration = const Duration(milliseconds: 50),
     this.tappedOpacity = 0.4,
+    this.showTap = true,
   });
 
   final VoidCallback onTap;
   final Widget child;
   final Duration duration;
   final double tappedOpacity;
+  final bool showTap;
 
   @override
   State<Button> createState() => _ButtonState();
@@ -26,31 +28,44 @@ class Button extends StatefulWidget {
 
 class _ButtonState extends State<Button> {
   bool _isPressed = false;
+  DateTime pressedTime = DateTime.now();
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () => widget.onTap(),
-      onTapCancel: () {
-        setState(() {
-          _isPressed = false;
-        });
-      },
-      onTapDown: (details) {
-        setState(() {
-          _isPressed = true;
-        });
-      },
-      onTapUp: ((details) {
-        setState(() {
-          _isPressed = false;
-        });
-      }),
-      child: AnimatedOpacity(
-        opacity: _isPressed ? widget.tappedOpacity : 1,
-        duration: widget.duration,
+    if (widget.showTap) {
+      return GestureDetector(
+        onTap: () => widget.onTap(),
+        onTapCancel: () {
+          setState(() {
+            _isPressed = false;
+          });
+        },
+        onTapDown: (details) {
+          setState(() {
+            _isPressed = true;
+          });
+          pressedTime = DateTime.now();
+        },
+        onTapUp: ((details) async {
+          var now = DateTime.now();
+          if (now.difference(pressedTime).inMilliseconds < 50) {
+            await Future.delayed(const Duration(milliseconds: 100));
+          }
+          setState(() {
+            _isPressed = false;
+          });
+        }),
+        child: AnimatedOpacity(
+          opacity: _isPressed ? widget.tappedOpacity : 1,
+          duration: widget.duration,
+          child: widget.child,
+        ),
+      );
+    } else {
+      return GestureDetector(
+        onTap: () => widget.onTap(),
         child: widget.child,
-      ),
-    );
+      );
+    }
   }
 }
